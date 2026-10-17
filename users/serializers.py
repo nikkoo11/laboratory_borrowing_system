@@ -5,10 +5,11 @@ from .models import User
 class UserSerializer(serializers.ModelSerializer):
     """Used for register, admin list/create, and detail views."""
     password = serializers.CharField(write_only=True)
+    role = serializers.CharField(read_only=True)
 
     class Meta:
         model = User
-        fields = ['user_id', 'username', 'password', 'first_name', 'last_name', 'user_type', 'department']
+        fields = ['user_id', 'username', 'password', 'first_name', 'last_name', 'user_type', 'department', 'role']
 
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)

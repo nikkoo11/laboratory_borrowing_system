@@ -7,3 +7,4 @@ psycopg2-binary==2.9.12
 PyJWT==2.14.0
 sqlparse==0.6.0
 tzdata==2026.3
+pillow>=11.0.0

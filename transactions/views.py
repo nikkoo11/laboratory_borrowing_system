@@ -13,10 +13,13 @@ STAFF_ONLY_FIELDS = ('approver', 'return_datetime')
 
 
 class TransactionList(APIView):
-    permission_classes = [IsStaffOrAdmin]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        transactions = Transaction.objects.all()
+        if request.user.role in (User.Role.ADMIN, User.Role.STAFF):
+            transactions = Transaction.objects.all().order_by('-transaction_id')
+        else:
+            transactions = Transaction.objects.filter(user=request.user).order_by('-transaction_id')
         serializer = TransactionSerializer(transactions, many=True)
         return Response(serializer.data)
 

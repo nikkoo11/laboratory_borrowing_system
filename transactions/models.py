@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from users.models import User
 from staff.models import Staff
 from inventory.models import Inventory
@@ -14,7 +15,7 @@ class Transaction(models.Model):
         blank=True,
         db_column='approver_id',
     )
-    borrow_datetime = models.DateTimeField(auto_now_add=True)
+    borrow_datetime = models.DateTimeField(default=timezone.now)
     return_datetime = models.DateTimeField(null=True, blank=True)
     quantity = models.PositiveIntegerField(default=1)
 

@@ -23,8 +23,47 @@ class CategoryCreate(APIView):
         serializer = CategorySerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(
             data=serializer.errors,
             status=status.HTTP_400_BAD_REQUEST
         )
+
+
+class CategoryDetail(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        try:
+            category = Category.objects.get(pk=pk)
+        except Category.DoesNotExist:
+            return Response(data={'message': 'Category does not exist.'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = CategorySerializer(category)
+        return Response(serializer.data)
+
+
+class CategoryUpdate(APIView):
+    permission_classes = [IsAdmin]
+
+    def put(self, request, pk):
+        try:
+            category = Category.objects.get(pk=pk)
+        except Category.DoesNotExist:
+            return Response(data={'message': 'Category does not exist.'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = CategorySerializer(instance=category, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(data=serializer.data)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CategoryDelete(APIView):
+    permission_classes = [IsAdmin]
+
+    def delete(self, request, pk):
+        try:
+            category = Category.objects.get(pk=pk)
+        except Category.DoesNotExist:
+            return Response(data={'message': 'Category does not exist.'}, status=status.HTTP_404_NOT_FOUND)
+        category.delete()
+        return Response(data={'message': 'Category deleted.'}, status=status.HTTP_204_NO_CONTENT)
