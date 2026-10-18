@@ -9,9 +9,14 @@ from rest_framework.permissions import IsAuthenticated
 
 
 class StaffList(APIView):
-    permission_classes = [IsAdmin]
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            from transactions.permissions import IsStaffOrAdmin
+            return [IsStaffOrAdmin()]
+        return [IsAdmin()]
+
     def get(self, request):
-        staff = Staff.objects.all()
+        staff = Staff.objects.all().order_by('staff_id')
         serializer = StaffSerializer(staff, many=True)
         return Response(serializer.data)
 

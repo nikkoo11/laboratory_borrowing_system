@@ -8,4 +8,6 @@ urlpatterns = [
     path('transactions/<int:pk>/', TransactionDetail.as_view()),
     path('transactions/<int:pk>/update/', TransactionUpdate.as_view()),
     path('transactions/<int:pk>/delete/', TransactionDelete.as_view()),
+    path('transactions/<int:pk>/approve/', TransactionApprove.as_view()),
+    path('transactions/<int:pk>/reject/', TransactionReject.as_view()),
 ]

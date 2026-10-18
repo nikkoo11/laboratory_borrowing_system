@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { 
-  Lock, 
-  User, 
-  ArrowRight, 
-  Building2, 
-  CheckCircle2, 
+import {
+  Lock,
+  User,
+  ArrowRight,
+  CheckCircle2,
   AlertCircle,
-  Sparkles
+  Eye,
+  EyeOff,
+  GraduationCap,
+  FlaskConical,
 } from 'lucide-react';
 
 export default function AuthView() {
@@ -16,13 +18,9 @@ export default function AuthView() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
-  // Form states
-  const [loginForm, setLoginForm] = useState({
-    username: '',
-    password: '',
-  });
-
+  const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [regForm, setRegForm] = useState({
     username: '',
     password: '',
@@ -32,11 +30,6 @@ export default function AuthView() {
     user_type: 'student',
   });
 
-  const handleQuickLogin = (username, password) => {
-    setLoginForm({ username, password });
-    setError('');
-  };
-
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -44,10 +37,9 @@ export default function AuthView() {
     try {
       await login(loginForm.username, loginForm.password);
     } catch (err) {
-      console.error(err);
       setError(
         err.response?.data?.message ||
-        'Invalid username or password. Please verify your credentials.'
+        'Invalid credentials.'
       );
     } finally {
       setLoading(false);
@@ -61,11 +53,10 @@ export default function AuthView() {
     setLoading(true);
     try {
       await register(regForm);
-      setSuccess('Account created successfully! You can now sign in.');
+      setSuccess('Account created! You can now sign in.');
       setIsRegister(false);
       setLoginForm({ username: regForm.username, password: regForm.password });
     } catch (err) {
-      console.error(err);
       const data = err.response?.data;
       if (typeof data === 'object') {
         const firstKey = Object.keys(data)[0];
@@ -79,283 +70,329 @@ export default function AuthView() {
     }
   };
 
+  const switchTab = (toRegister) => {
+    setIsRegister(toRegister);
+    setError('');
+    setSuccess('');
+  };
+
   return (
-    <div className="min-h-screen bg-[#090a0f] flex items-center justify-center p-4 selection:bg-orange-600 selection:text-white">
-      <div className="w-full max-w-md">
-        
-        {/* CSU CEA Logo & Institutional Header */}
-        <div className="text-center mb-6">
-          <div className="inline-block relative">
-            <div className="w-24 h-24 mx-auto rounded-full p-1 bg-gradient-to-tr from-orange-600 via-orange-500 to-amber-500 shadow-xl shadow-orange-600/20 mb-3">
+    <div className="min-h-screen relative flex items-center justify-center selection:bg-orange-500 selection:text-white overflow-hidden">
+
+      {/* ── Full-screen campus background ── */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url('/campus.jpg')" }}
+      />
+      {/* Dark overlay — stronger at bottom for legibility */}
+      <div className="absolute inset-0 bg-gradient-to-br from-black/75 via-black/60 to-black/80" />
+      {/* Subtle maroon tint to match CSU colors */}
+      <div className="absolute inset-0 bg-gradient-to-t from-[#4a0000]/40 via-transparent to-transparent" />
+
+      {/* ── Floating particle dots (decorative) ── */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {[...Array(6)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 rounded-full bg-orange-400/30 animate-pulse"
+            style={{
+              left: `${15 + i * 14}%`,
+              top: `${20 + (i % 3) * 25}%`,
+              animationDelay: `${i * 0.7}s`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* ── Main card ── */}
+      <div className="relative z-10 w-full max-w-md mx-4">
+
+        {/* Institution header above the card */}
+        <div className="text-center mb-5">
+          {/* Logo ring */}
+          <div className="relative inline-block mb-3">
+            <div className="w-20 h-20 mx-auto rounded-full p-[3px] bg-gradient-to-tr from-orange-600 via-amber-400 to-orange-500 shadow-2xl shadow-orange-600/40">
               <img
                 src="/logo.png"
-                alt="Cagayan State University - College of Engineering and Architecture"
-                className="w-full h-full object-cover rounded-full bg-white shadow-inner"
+                alt="CSU Logo"
+                className="w-full h-full object-cover rounded-full bg-white"
               />
             </div>
+            {/* Online indicator */}
+            <span className="absolute bottom-1 right-1 w-3 h-3 rounded-full bg-emerald-400 border-2 border-black shadow" />
           </div>
-          
-          <h2 className="text-xs font-semibold tracking-widest uppercase text-orange-500">
-            Cagayan State University
-          </h2>
-          <h1 className="text-lg font-bold text-white tracking-tight mt-0.5">
-            College of Engineering & Architecture
-          </h1>
-          <p className="text-xs text-zinc-400 mt-1">
-            Laboratory Equipment Borrowing & Custody System
+
+          <p className="text-[11px] font-bold tracking-[0.25em] uppercase text-orange-400 mb-0.5">
+            Cagayan State University — Carig Campus
           </p>
-
-          <div className="mt-2.5 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-orange-500/10 text-orange-400 border border-orange-500/20">
-            <span>AD OPTIMUM EDUCANTS &bull; 1981</span>
+          <h1 className="text-xl font-extrabold text-white tracking-tight drop-shadow-lg">
+            College of Engineering &amp; Architecture
+          </h1>
+          <div className="flex items-center justify-center gap-2 mt-2">
+            <FlaskConical size={13} className="text-orange-400" />
+            <span className="text-xs text-white/70 font-medium">
+              Laboratory Equipment Borrowing &amp; Custody System
+            </span>
+            <FlaskConical size={13} className="text-orange-400" />
           </div>
         </div>
 
-        {/* Minimalist Card */}
-        <div className="bg-[#12141c] border border-zinc-800/90 rounded-2xl p-6 sm:p-7 shadow-2xl relative">
-          
+        {/* Glass card */}
+        <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl shadow-2xl overflow-hidden">
 
-          {/* Error / Success Feedback */}
-          {error && (
-            <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-2 text-rose-300 text-xs">
-              <AlertCircle size={15} className="shrink-0 mt-0.5" />
-              <span>{error}</span>
+          {/* Card top accent bar */}
+          <div className="h-1 w-full bg-gradient-to-r from-orange-600 via-amber-400 to-orange-500" />
+
+          <div className="px-6 py-7 sm:px-8">
+
+            {/* Tab switcher */}
+            <div className="flex rounded-2xl bg-black/30 p-1 mb-6 border border-white/10">
+              {[
+                { label: 'Sign In', value: false },
+                { label: 'Register', value: true },
+              ].map(({ label, value }) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => switchTab(value)}
+                  className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all duration-200 ${
+                    isRegister === value
+                      ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/40'
+                      : 'text-white/50 hover:text-white/80'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
-          )}
 
-          {success && (
-            <div className="mb-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-start gap-2 text-emerald-300 text-xs">
-              <CheckCircle2 size={15} className="shrink-0 mt-0.5" />
-              <span>{success}</span>
-            </div>
-          )}
+            {/* ── Feedback banners ── */}
+            {error && (
+              <div className="mb-4 p-3 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-start gap-2 text-rose-200 text-xs backdrop-blur">
+                <AlertCircle size={14} className="shrink-0 mt-0.5" />
+                <span>{error}</span>
+              </div>
+            )}
+            {success && (
+              <div className="mb-4 p-3 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-start gap-2 text-emerald-200 text-xs backdrop-blur">
+                <CheckCircle2 size={14} className="shrink-0 mt-0.5" />
+                <span>{success}</span>
+              </div>
+            )}
 
-          {/* Form Switch Tabs */}
-          <div className="flex rounded-xl bg-zinc-900 p-1 mb-5 border border-zinc-800">
-            <button
-              type="button"
-              onClick={() => { setIsRegister(false); setError(''); }}
-              className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-                !isRegister
-                  ? 'bg-orange-600 text-white shadow-sm'
-                  : 'text-zinc-400 hover:text-white'
-              }`}
-            >
-              Sign In
-            </button>
-            <button
-              type="button"
-              onClick={() => { setIsRegister(true); setError(''); }}
-              className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-                isRegister
-                  ? 'bg-orange-600 text-white shadow-sm'
-                  : 'text-zinc-400 hover:text-white'
-              }`}
-            >
-              Register
-            </button>
+            {/* ────────── LOGIN FORM ────────── */}
+            {!isRegister ? (
+              <form onSubmit={handleLoginSubmit} className="space-y-4">
+                {/* Username */}
+                <div>
+                  <label className="block text-[11px] font-semibold text-white/70 uppercase tracking-widest mb-1.5">
+                    Username / Student ID
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-white/40">
+                      <User size={14} />
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      autoComplete="username"
+                      value={loginForm.username}
+                      onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
+                      placeholder="e.g. admin or 21-04981"
+                      className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/30 text-sm focus:outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400/50 transition-all backdrop-blur"
+                    />
+                  </div>
+                </div>
+
+                {/* Password */}
+                <div>
+                  <label className="block text-[11px] font-semibold text-white/70 uppercase tracking-widest mb-1.5">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-white/40">
+                      <Lock size={14} />
+                    </div>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      autoComplete="current-password"
+                      value={loginForm.password}
+                      onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                      placeholder="••••••••"
+                      className="w-full pl-9 pr-10 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/30 text-sm focus:outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400/50 transition-all backdrop-blur"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-white/40 hover:text-white/70 transition-colors"
+                    >
+                      {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Submit */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full mt-2 py-3 px-4 rounded-xl bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 active:scale-[0.98] text-white font-bold text-sm shadow-lg shadow-orange-600/40 flex items-center justify-center gap-2 transition-all duration-200 disabled:opacity-60"
+                >
+                  {loading ? (
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <span>Enter Laboratory System</span>
+                      <ArrowRight size={15} />
+                    </>
+                  )}
+                </button>
+              </form>
+
+            ) : (
+              /* ────────── REGISTER FORM ────────── */
+              <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
+                {/* Name row */}
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { label: 'First Name', field: 'first_name', placeholder: 'Juan' },
+                    { label: 'Last Name', field: 'last_name', placeholder: 'Dela Cruz' },
+                  ].map(({ label, field, placeholder }) => (
+                    <div key={field}>
+                      <label className="block text-[11px] font-semibold text-white/70 uppercase tracking-widest mb-1.5">
+                        {label}
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={regForm[field]}
+                        onChange={(e) => setRegForm({ ...regForm, [field]: e.target.value })}
+                        placeholder={placeholder}
+                        className="w-full px-3 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/30 text-sm focus:outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400/50 transition-all"
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Username */}
+                <div>
+                  <label className="block text-[11px] font-semibold text-white/70 uppercase tracking-widest mb-1.5">
+                    Username / ID
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-white/40">
+                      <User size={14} />
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      value={regForm.username}
+                      onChange={(e) => setRegForm({ ...regForm, username: e.target.value })}
+                      placeholder="e.g. 21-04981"
+                      className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/30 text-sm focus:outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400/50 transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Password */}
+                <div>
+                  <label className="block text-[11px] font-semibold text-white/70 uppercase tracking-widest mb-1.5">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-white/40">
+                      <Lock size={14} />
+                    </div>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={regForm.password}
+                      onChange={(e) => setRegForm({ ...regForm, password: e.target.value })}
+                      placeholder="Create a strong password"
+                      className="w-full pl-9 pr-10 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/30 text-sm focus:outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400/50 transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-white/40 hover:text-white/70 transition-colors"
+                    >
+                      {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Role + Department */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-white/70 uppercase tracking-widest mb-1.5">
+                      Role
+                    </label>
+                    <select
+                      value={regForm.user_type}
+                      onChange={(e) => setRegForm({ ...regForm, user_type: e.target.value })}
+                      className="w-full px-3 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400/50 transition-all"
+                    >
+                      <option value="student" className="bg-zinc-900">Student</option>
+                      <option value="faculty" className="bg-zinc-900">Faculty</option>
+                      <option value="staff" className="bg-zinc-900">Staff</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-white/70 uppercase tracking-widest mb-1.5">
+                      Department
+                    </label>
+                    <select
+                      value={regForm.department}
+                      onChange={(e) => setRegForm({ ...regForm, department: e.target.value })}
+                      className="w-full px-3 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400/50 transition-all"
+                    >
+                      {[
+                        'Civil Engineering',
+                        'Electrical Engineering',
+                        'Electronics Engineering',
+                        'Computer Engineering',
+                        'Architecture',
+                        'Chemical Engineering',
+                        'Geodetic Engineering',
+                      ].map((d) => (
+                        <option key={d} value={d} className="bg-zinc-900">{d}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Submit */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full mt-1 py-3 px-4 rounded-xl bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 active:scale-[0.98] text-white font-bold text-sm shadow-lg shadow-orange-600/40 flex items-center justify-center gap-2 transition-all duration-200 disabled:opacity-60"
+                >
+                  {loading ? (
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <GraduationCap size={15} />
+                      <span>Create COEA Account</span>
+                    </>
+                  )}
+                </button>
+              </form>
+            )}
           </div>
 
-          {/* LOGIN FORM */}
-          {!isRegister ? (
-            <form onSubmit={handleLoginSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-medium text-zinc-300 mb-1.5">
-                  Institutional ID / Username
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500">
-                    <User size={15} />
-                  </div>
-                  <input
-                    type="text"
-                    required
-                    value={loginForm.username}
-                    onChange={(e) =>
-                      setLoginForm({ ...loginForm, username: e.target.value })
-                    }
-                    placeholder="e.g. admin or student1"
-                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-zinc-900/90 border border-zinc-800 text-white placeholder-zinc-500 text-xs focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-zinc-300 mb-1.5">
-                  Password
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500">
-                    <Lock size={15} />
-                  </div>
-                  <input
-                    type="password"
-                    required
-                    value={loginForm.password}
-                    onChange={(e) =>
-                      setLoginForm({ ...loginForm, password: e.target.value })
-                    }
-                    placeholder="••••••••"
-                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-zinc-900/90 border border-zinc-800 text-white placeholder-zinc-500 text-xs focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full mt-2 py-2.5 px-4 rounded-xl bg-orange-600 hover:bg-orange-500 active:bg-orange-700 text-white font-semibold text-xs shadow-md shadow-orange-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
-              >
-                {loading ? (
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <span>Enter Laboratory System</span>
-                    <ArrowRight size={14} />
-                  </>
-                )}
-              </button>
-            </form>
-          ) : (
-            /* REGISTER FORM */
-            <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-zinc-300 mb-1">
-                    First Name
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={regForm.first_name}
-                    onChange={(e) =>
-                      setRegForm({ ...regForm, first_name: e.target.value })
-                    }
-                    placeholder="Juan"
-                    className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-white text-xs focus:outline-none focus:border-orange-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-zinc-300 mb-1">
-                    Last Name
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={regForm.last_name}
-                    onChange={(e) =>
-                      setRegForm({ ...regForm, last_name: e.target.value })
-                    }
-                    placeholder="Dela Cruz"
-                    className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-white text-xs focus:outline-none focus:border-orange-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-zinc-300 mb-1">
-                  Username
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500">
-                    <User size={14} />
-                  </div>
-                  <input
-                    type="text"
-                    required
-                    value={regForm.username}
-                    onChange={(e) =>
-                      setRegForm({ ...regForm, username: e.target.value })
-                    }
-                    placeholder="e.g. 21-04981"
-                    className="w-full pl-8 pr-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-white text-xs focus:outline-none focus:border-orange-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-zinc-300 mb-1">
-                  Password
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500">
-                    <Lock size={14} />
-                  </div>
-                  <input
-                    type="password"
-                    required
-                    value={regForm.password}
-                    onChange={(e) =>
-                      setRegForm({ ...regForm, password: e.target.value })
-                    }
-                    placeholder="Create a password"
-                    className="w-full pl-8 pr-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-white text-xs focus:outline-none focus:border-orange-500"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-zinc-300 mb-1">
-                    Role / Type
-                  </label>
-                  <select
-                    value={regForm.user_type}
-                    onChange={(e) =>
-                      setRegForm({ ...regForm, user_type: e.target.value })
-                    }
-                    className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-white text-xs focus:outline-none focus:border-orange-500"
-                  >
-                    <option value="student">Student</option>
-                    <option value="faculty">Faculty</option>
-                    <option value="staff">Staff</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-zinc-300 mb-1">
-                    Department
-                  </label>
-                  <select
-                    value={regForm.department}
-                    onChange={(e) =>
-                      setRegForm({ ...regForm, department: e.target.value })
-                    }
-                    className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-white text-xs focus:outline-none focus:border-orange-500"
-                  >
-                    <option value="Civil Engineering">Civil Engineering</option>
-                    <option value="Electrical Engineering">Electrical Engineering</option>
-                    <option value="Electronics Engineering">Electronics Engineering</option>
-                    <option value="Computer Engineering">Computer Engineering</option>
-                    <option value="Architecture">Architecture</option>
-                    <option value="Chemical / Science">Chemical / Science</option>
-                  </select>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full mt-3 py-2.5 px-4 rounded-xl bg-orange-600 hover:bg-orange-500 active:bg-orange-700 text-white font-semibold text-xs shadow-md shadow-orange-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
-              >
-                {loading ? (
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <span>Create CEA Account</span>
-                    <ArrowRight size={14} />
-                  </>
-                )}
-              </button>
-            </form>
-          )}
-
+          {/* Card bottom strip */}
+          <div className="px-6 py-3 border-t border-white/10 bg-black/20 text-center">
+            <p className="text-[10px] text-white/40 font-medium tracking-wide">
+              CSU COEA • Laboratory Borrowing System • Ad Optimum Educans
+            </p>
+          </div>
         </div>
 
-        {/* Footer info */}
-        <p className="text-center text-[11px] text-zinc-500 mt-5">
-          CSU College of Engineering & Architecture &bull; Official Laboratory System
+        {/* Below-card tagline */}
+        <p className="text-center text-[11px] text-white/30 mt-4">
+          Authorized personnel only. All access is logged and monitored.
         </p>
-
       </div>
     </div>
   );

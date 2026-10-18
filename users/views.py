@@ -36,10 +36,14 @@ class UserLogin(APIView):
 
 
 class UserList(APIView):
-    permission_classes = [IsAdmin]
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            from transactions.permissions import IsStaffOrAdmin
+            return [IsStaffOrAdmin()]
+        return [IsAdmin()]
 
     def get(self, request):
-        users = User.objects.all()
+        users = User.objects.all().order_by('user_id')
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data)
 
@@ -52,13 +56,14 @@ class UserList(APIView):
 
 
 class UserDetail(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsSelfOrAdmin]
 
     def get(self, request, pk):
         try:
             user = User.objects.get(pk=pk)
         except User.DoesNotExist:
             return Response(data={'message': 'User does not exist.'}, status=status.HTTP_404_NOT_FOUND)
+        self.check_object_permissions(request, user)
         serializer = UserSerializer(user)
         return Response(serializer.data)
 
@@ -88,6 +93,18 @@ class UserDelete(APIView):
         except User.DoesNotExist:
             return Response(data={'message': 'User does not exist.'}, status=status.HTTP_404_NOT_FOUND)
         self.check_object_permissions(request, user)
+
+        from transactions.models import Transaction
+        has_active_loans = Transaction.objects.filter(
+            user=user,
+            status__in=[Transaction.APPROVED, Transaction.PENDING]
+        ).exists()
+        if has_active_loans:
+            return Response(
+                data={'message': 'Cannot delete user account with active or pending equipment loans.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         user.delete()
         return Response(data={'message': 'User deleted.'}, status=status.HTTP_204_NO_CONTENT)
 

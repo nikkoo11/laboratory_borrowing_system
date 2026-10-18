@@ -1,3 +1,4 @@
+from django.db.models import ProtectedError
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -65,5 +66,11 @@ class CategoryDelete(APIView):
             category = Category.objects.get(pk=pk)
         except Category.DoesNotExist:
             return Response(data={'message': 'Category does not exist.'}, status=status.HTTP_404_NOT_FOUND)
-        category.delete()
+        try:
+            category.delete()
+        except ProtectedError:
+            return Response(
+                data={'message': 'Cannot delete category. Apparatus items are still assigned to it.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         return Response(data={'message': 'Category deleted.'}, status=status.HTTP_204_NO_CONTENT)

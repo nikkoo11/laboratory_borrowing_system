@@ -24,10 +24,11 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Clear token if unauthorized and not already on login
-      if (!window.location.pathname.includes('/login')) {
-        // localStorage.removeItem('access_token');
-        // localStorage.removeItem('refresh_token');
+      const isAuthEndpoint = error.config?.url?.includes('/login/') || error.config?.url?.includes('/register/');
+      if (!isAuthEndpoint) {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        window.dispatchEvent(new Event('auth:unauthorized'));
       }
     }
     return Promise.reject(error);
