@@ -1,16 +1,33 @@
-# React + Vite
+# CSU CEA Laboratory Borrowing System frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+This is a Vue 3 single-page application built with Vite and Tailwind CSS.
 
-Currently, two official plugins are available:
+## Development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm install
+npm run dev
+```
 
-## React Compiler
+The development server runs on port 5172 and proxies `/api` requests to the Django server at `http://127.0.0.1:8000`.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Password recovery
 
-## Expanding the Oxlint configuration
+Accounts need a unique email address to use the **Forgot password?** link. New registrations require an email; existing users can add one from **My Profile**, or an administrator can set one from **Users & Staff**. Run `python manage.py migrate` in `backend` to add the email field.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+For local development, Django uses its console email backend, which prints reset links in the backend terminal rather than sending email. Configure a real mail provider before enabling password recovery in production by setting these environment variables for Django:
+
+- `EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend`
+- `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`
+- `EMAIL_USE_TLS=true` and `DEFAULT_FROM_EMAIL`
+- `FRONTEND_URL` to the public origin of the Vue application
+
+Reset links expire after one hour and can only be used once.
+
+## Production build
+
+```bash
+npm run build
+```
+
+The Vue application is in `src/vue/`. The retired React source files remain in `src/` as a migration reference, but they are not part of the Vite entry point or dependency graph.
