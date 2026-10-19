@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import Modal from '../../components/Modal';
 import Alert from '../../components/Alert';
 import StatusBadge from '../../components/StatusBadge';
+import NotificationBell from '../../components/NotificationBell';
 import { Receipt, Search, CheckCircle, Plus, Trash2, User, Package, UserCheck, XCircle } from 'lucide-react';
 
 function getTxStatus(tx) {
@@ -202,7 +203,6 @@ export default function TransactionsView() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
@@ -212,19 +212,23 @@ export default function TransactionsView() {
             Approve requests, verify check-ins, and inspect custody history.
           </p>
         </div>
-        <button
-          onClick={handleOpenCreate}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#ea580c] hover:bg-[#c2410c] text-white text-xs font-semibold shadow-xs transition-colors self-start sm:self-auto cursor-pointer"
-        >
-          <Plus size={15} strokeWidth={2.5} />
-          <span>Record loan</span>
-        </button>
+        <div className="flex items-center gap-2.5 self-start sm:self-auto">
+          <div className="bg-white border border-slate-200 rounded-xl p-1 shadow-2xs">
+            <NotificationBell />
+          </div>
+          <button
+            onClick={handleOpenCreate}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#ea580c] hover:bg-[#c2410c] text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+          >
+            <Plus size={15} strokeWidth={2.5} />
+            <span>Record loan</span>
+          </button>
+        </div>
       </div>
 
       <Alert type="success" message={successMsg} />
       <Alert type="error" message={errorMsg} />
 
-      {/* Filter bar card */}
       <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-2xs flex flex-col sm:flex-row gap-3 items-center justify-between">
         <div className="relative w-full sm:w-80">
           <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -252,7 +256,6 @@ export default function TransactionsView() {
         </div>
       </div>
 
-      {/* Transactions Table Card */}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
         {loading ? (
           <div className="py-16 text-center text-xs text-slate-400">Loading transaction logs...</div>
@@ -365,7 +368,6 @@ export default function TransactionsView() {
         )}
       </div>
 
-      {/* RECORD LOAN MODAL */}
       <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} title="Record New Equipment Loan">
         <form onSubmit={handleCreateSubmit} className="space-y-4">
           <div>
@@ -423,7 +425,7 @@ export default function TransactionsView() {
               <option value="">No approver assigned</option>
               {staffList.map((st) => (
                 <option key={st.staff_id} value={st.staff_id}>
-                  {st.full_name || st.username} — {st.position}
+                  {st.full_name || st.username} &mdash; {st.position}
                 </option>
               ))}
             </select>
@@ -448,7 +450,6 @@ export default function TransactionsView() {
         </form>
       </Modal>
 
-      {/* CONFIRM APPROVAL MODAL */}
       <Modal isOpen={isApproveModalOpen} onClose={() => setIsApproveModalOpen(false)} title="Confirm Loan Approval" maxWidth="max-w-md">
         <div className="space-y-4">
           <p className="text-xs text-slate-600">
@@ -480,7 +481,6 @@ export default function TransactionsView() {
         </div>
       </Modal>
 
-      {/* CHECK-IN RETURN MODAL */}
       <Modal isOpen={isReturnModalOpen} onClose={() => setIsReturnModalOpen(false)} title="Check-in Returned Equipment" maxWidth="max-w-md">
         <div className="space-y-4">
           <p className="text-xs text-slate-600">
@@ -512,7 +512,6 @@ export default function TransactionsView() {
         </div>
       </Modal>
 
-      {/* DELETE MODAL */}
       <Modal isOpen={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} title="Delete Record" maxWidth="max-w-md">
         <div className="space-y-4">
           <p className="text-xs text-slate-600">
@@ -540,4 +539,3 @@ export default function TransactionsView() {
     </div>
   );
 }
-

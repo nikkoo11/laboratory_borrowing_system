@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import csuLogo from '../assets/csu-cea-logo.png';
 import {
   LayoutDashboard,
   Package,
@@ -9,7 +10,6 @@ import {
   LogOut,
   UserCircle,
   ClipboardList,
-  FlaskConical,
   Menu,
   X,
 } from 'lucide-react';
@@ -18,7 +18,6 @@ export default function Sidebar({ currentTab, setCurrentTab }) {
   const { user, logout, isAdmin, isStaff } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Admin / Staff navigation items (User view toggle removed per request)
   const adminNavItems = [
     { tab: 'dashboard',    Icon: LayoutDashboard, label: 'Dashboard' },
     { tab: 'inventory',    Icon: Package,         label: 'Inventory' },
@@ -27,7 +26,6 @@ export default function Sidebar({ currentTab, setCurrentTab }) {
     ...(isAdmin ? [{ tab: 'users', Icon: Users,   label: 'Users & Staff' }] : []),
   ];
 
-  // Borrower / Student navigation items
   const userNavItems = [
     { tab: 'catalog',    Icon: Package,       label: 'Borrow Equipment' },
     { tab: 'my-borrows', Icon: ClipboardList, label: 'My Borrow History' },
@@ -44,25 +42,29 @@ export default function Sidebar({ currentTab, setCurrentTab }) {
   const navContent = (
     <div className="flex flex-col h-full justify-between p-4 bg-white border-r border-slate-100 select-none">
       <div>
-        {/* Brand header */}
-        <div className="flex items-center gap-3 px-2 py-3 mb-6">
-          <div className="w-9 h-9 rounded-xl bg-orange-50 border border-orange-100/80 flex items-center justify-center text-orange-600 shadow-xs">
-            <FlaskConical size={19} strokeWidth={2.2} />
-          </div>
-          <div className="leading-tight">
-            <h1 className="text-sm font-semibold text-slate-900 tracking-tight">Laboratory</h1>
-            <p className="text-[11px] text-slate-400 font-normal">Inventory management</p>
+        {/* Brand Header */}
+        <div className="flex items-center gap-3 px-2 py-3 mb-6 border-b border-slate-100/80 pb-4">
+          <img 
+            src={csuLogo} 
+            alt="CSU Logo" 
+            className="w-10 h-10 object-contain shrink-0" 
+          />
+          <div className="leading-tight min-w-0">
+            <h2 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">
+              CSU - Carig Campus
+            </h2>
+            <h1 className="text-xs font-bold text-slate-900 leading-snug">
+              COEA Laboratory Borrowing System
+            </h1>
           </div>
         </div>
 
-        {/* Section label */}
         <div className="px-3 mb-2">
           <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
             Workspace
           </span>
         </div>
 
-        {/* Navigation links */}
         <nav className="space-y-1">
           {navItems.map(({ tab, Icon, label }) => {
             const isActive = currentTab === tab;
@@ -70,7 +72,7 @@ export default function Sidebar({ currentTab, setCurrentTab }) {
               <button
                 key={tab}
                 onClick={() => handleTabChange(tab)}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors ${
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
                   isActive
                     ? 'bg-orange-50/80 text-orange-700 font-semibold'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
@@ -93,9 +95,8 @@ export default function Sidebar({ currentTab, setCurrentTab }) {
         </nav>
       </div>
 
-      {/* Footer / User & Logout */}
       <div className="pt-4 border-t border-slate-100 space-y-3">
-        {/* User quick badge */}
+        {/* User profile info */}
         <div className="flex items-center gap-2.5 px-2 py-1">
           <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-semibold text-xs flex items-center justify-center uppercase shrink-0">
             {user?.first_name?.[0] || user?.username?.[0] || 'U'}
@@ -110,10 +111,9 @@ export default function Sidebar({ currentTab, setCurrentTab }) {
           </div>
         </div>
 
-        {/* Logout */}
         <button
           onClick={logout}
-          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-rose-600 hover:bg-rose-50/60 transition-colors"
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-rose-600 hover:bg-rose-50/60 transition-colors cursor-pointer"
         >
           <LogOut size={15} strokeWidth={1.8} />
           <span>Log out</span>
@@ -128,13 +128,16 @@ export default function Sidebar({ currentTab, setCurrentTab }) {
 
   return (
     <>
-      {/* Mobile top bar */}
       <div className="lg:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-3 bg-white border-b border-slate-200">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center text-orange-600">
-            <FlaskConical size={18} />
-          </div>
-          <span className="text-sm font-semibold text-slate-900">Laboratory</span>
+          <img 
+            src={csuLogo} 
+            alt="CSU Logo" 
+            className="w-7 h-7 object-contain" 
+          />
+          <span className="text-xs font-bold text-slate-900 truncate">
+            COEA Laboratory System
+          </span>
         </div>
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
@@ -145,7 +148,6 @@ export default function Sidebar({ currentTab, setCurrentTab }) {
         </button>
       </div>
 
-      {/* Mobile backdrop */}
       {mobileOpen && (
         <div
           className="lg:hidden fixed inset-0 z-40 bg-black/30 backdrop-blur-xs"
@@ -153,7 +155,6 @@ export default function Sidebar({ currentTab, setCurrentTab }) {
         />
       )}
 
-      {/* Mobile drawer */}
       <aside
         className={`lg:hidden fixed inset-y-0 left-0 z-50 w-64 bg-white transform transition-transform duration-200 ease-in-out ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
@@ -162,11 +163,9 @@ export default function Sidebar({ currentTab, setCurrentTab }) {
         {navContent}
       </aside>
 
-      {/* Desktop permanent sidebar */}
       <aside className="hidden lg:block w-64 shrink-0 h-screen sticky top-0">
         {navContent}
       </aside>
     </>
   );
 }
-

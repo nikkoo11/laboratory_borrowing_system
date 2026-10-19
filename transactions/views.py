@@ -7,11 +7,10 @@ from users.permissions import IsAdmin
 from users.models import User
 from staff.models import Staff
 from inventory.models import Inventory
-from .models import Transaction
+from .models import Transaction, Notification
 from .serializers import TransactionSerializer
 from .permissions import IsOwnerStaffOrAdmin, IsStaffOrAdmin
 
-# Fields only STAFF/ADMIN are allowed to set via TransactionUpdate.
 STAFF_ONLY_FIELDS = ('approver', 'return_datetime', 'status')
 
 
@@ -45,7 +44,6 @@ class TransactionCreate(APIView):
         if not serializer.is_valid():
             return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        # Validate that apparatus exists with sufficient quantity
         item_id = serializer.validated_data.get('item_name')
         qty = serializer.validated_data.get('quantity', 1)
         if item_id and item_id.quantity < qty:
@@ -56,7 +54,6 @@ class TransactionCreate(APIView):
 
         with db_transaction.atomic():
             created_tx = serializer.save()
-            # Deduct inventory only when the transaction is immediately approved (admin/staff path)
             if created_tx.status == Transaction.APPROVED:
                 inventory_item = Inventory.objects.select_for_update().get(pk=created_tx.item_name_id)
                 if inventory_item.quantity < created_tx.quantity:
@@ -68,6 +65,25 @@ class TransactionCreate(APIView):
                 if inventory_item.quantity == 0:
                     inventory_item.status = Inventory.UNAVAILABLE
                 inventory_item.save()
+
+            # Safely build borrower full name
+            full_name = f"{request.user.first_name} {request.user.last_name}".strip()
+            borrower_name = full_name if full_name else request.user.username
+
+            # Notify all Admin and Staff members about the new borrow request
+            staff_and_admins = User.objects.filter(role__in=[User.Role.ADMIN, User.Role.STAFF])
+            item_display_name = created_tx.item_name.item_name if hasattr(created_tx.item_name, 'item_name') else str(created_tx.item_name)
+
+            notifications = [
+                Notification(
+                    recipient=admin_user,
+                    transaction=created_tx,
+                    title="New Borrow Request",
+                    message=f"{borrower_name} requested to borrow {created_tx.quantity}x {item_display_name}."
+                )
+                for admin_user in staff_and_admins
+            ]
+            Notification.objects.bulk_create(notifications)
 
         return Response(data=TransactionSerializer(created_tx).data, status=status.HTTP_201_CREATED)
 
@@ -115,13 +131,21 @@ class TransactionUpdate(APIView):
                 return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
             updated_tx = serializer.save()
-            # Restore inventory quantity safely only when transitioning from APPROVED to RETURNED
             if prev_status == Transaction.APPROVED and updated_tx.status == Transaction.RETURNED:
                 inventory_item = Inventory.objects.select_for_update().get(pk=updated_tx.item_name_id)
                 inventory_item.quantity += updated_tx.quantity
                 if inventory_item.status == Inventory.UNAVAILABLE and inventory_item.quantity > 0:
                     inventory_item.status = Inventory.AVAILABLE
                 inventory_item.save()
+
+            if prev_status != updated_tx.status:
+                item_name = updated_tx.item_name.item_name if hasattr(updated_tx.item_name, 'item_name') else "equipment"
+                Notification.objects.create(
+                    recipient=updated_tx.user,
+                    transaction=updated_tx,
+                    title=f"Borrow Status Updated: {updated_tx.status.capitalize()}",
+                    message=f"Your request for {updated_tx.quantity}x {item_name} is now {updated_tx.status}."
+                )
 
         return Response(data=TransactionSerializer(updated_tx).data)
 
@@ -174,11 +198,19 @@ class TransactionApprove(APIView):
             transaction.status = Transaction.APPROVED
             transaction.save()
 
-            # Deduct inventory stock now that the request is officially approved
             inventory_item.quantity -= transaction.quantity
             if inventory_item.quantity == 0:
-                inventory_item.status = 'unavailable'
+                inventory_item.status = Inventory.UNAVAILABLE
             inventory_item.save()
+
+            # Notify borrower that request was approved
+            item_name = transaction.item_name.item_name if hasattr(transaction.item_name, 'item_name') else "equipment"
+            Notification.objects.create(
+                recipient=transaction.user,
+                transaction=transaction,
+                title="Borrow Request Approved",
+                message=f"Your request to borrow {transaction.quantity}x {item_name} has been approved."
+            )
 
         return Response(TransactionSerializer(transaction).data)
 
@@ -201,4 +233,45 @@ class TransactionReject(APIView):
             transaction.approver = staff
         transaction.status = Transaction.REJECTED
         transaction.save()
+
+        # Notify borrower that request was rejected
+        item_name = transaction.item_name.item_name if hasattr(transaction.item_name, 'item_name') else "equipment"
+        Notification.objects.create(
+            recipient=transaction.user,
+            transaction=transaction,
+            title="Borrow Request Rejected",
+            message=f"Your request to borrow {transaction.quantity}x {item_name} was rejected."
+        )
+
         return Response(TransactionSerializer(transaction).data)
+
+
+class NotificationListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        notifications = request.user.notifications.all()[:20]
+        data = [
+            {
+                "notification_id": n.notification_id,
+                "title": n.title,
+                "message": n.message,
+                "is_read": n.is_read,
+                "created_at": n.created_at,
+                "transaction_id": n.transaction_id
+            }
+            for n in notifications
+        ]
+        return Response(data)
+
+    def patch(self, request, pk=None):
+        if pk:
+            try:
+                notif = request.user.notifications.get(pk=pk)
+                notif.is_read = True
+                notif.save()
+            except Notification.DoesNotExist:
+                return Response({'message': 'Notification not found.'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            request.user.notifications.filter(is_read=False).update(is_read=True)
+        return Response({'message': 'Notifications updated.'})

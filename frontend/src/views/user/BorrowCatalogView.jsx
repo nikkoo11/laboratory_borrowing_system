@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import Modal from '../../components/Modal';
 import Alert from '../../components/Alert';
 import StatusBadge from '../../components/StatusBadge';
+import NotificationBell from '../../components/NotificationBell';
 import { Package, Search, Folder, MapPin, ArrowRight, ClipboardCheck } from 'lucide-react';
 
 export default function BorrowCatalogView({ onNavigateToHistory }) {
@@ -79,7 +80,6 @@ export default function BorrowCatalogView({ onNavigateToHistory }) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
@@ -89,13 +89,18 @@ export default function BorrowCatalogView({ onNavigateToHistory }) {
             Browse available apparatus, shelf locations, and submit borrow requests.
           </p>
         </div>
-        <button
-          onClick={onNavigateToHistory}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold shadow-2xs transition-colors self-start sm:self-auto cursor-pointer"
-        >
-          <ClipboardCheck size={15} className="text-[#ea580c]" />
-          <span>My Loans &amp; History</span>
-        </button>
+        <div className="flex items-center gap-2.5 self-start sm:self-auto">
+          <div className="bg-white border border-slate-200 rounded-xl p-1 shadow-2xs">
+            <NotificationBell />
+          </div>
+          <button
+            onClick={onNavigateToHistory}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+          >
+            <ClipboardCheck size={15} className="text-[#ea580c]" />
+            <span>My Loans &amp; History</span>
+          </button>
+        </div>
       </div>
 
       {successMsg && (
@@ -108,7 +113,6 @@ export default function BorrowCatalogView({ onNavigateToHistory }) {
       )}
       <Alert type="error" message={errorMsg} />
 
-      {/* Search & Category Filter */}
       <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-2xs grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="relative">
           <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -132,7 +136,6 @@ export default function BorrowCatalogView({ onNavigateToHistory }) {
         </select>
       </div>
 
-      {/* Catalog Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {loading ? (
           <div className="col-span-full py-16 text-center text-xs text-slate-400">Loading laboratory catalog...</div>
@@ -193,7 +196,6 @@ export default function BorrowCatalogView({ onNavigateToHistory }) {
         )}
       </div>
 
-      {/* BORROW MODAL */}
       <Modal
         isOpen={isBorrowModalOpen}
         onClose={() => setIsBorrowModalOpen(false)}
@@ -242,4 +244,3 @@ export default function BorrowCatalogView({ onNavigateToHistory }) {
     </div>
   );
 }
-

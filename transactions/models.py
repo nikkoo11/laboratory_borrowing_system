@@ -34,3 +34,31 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f'Transaction #{self.transaction_id}'
+
+
+class Notification(models.Model):
+    notification_id = models.AutoField(primary_key=True)
+    recipient = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='notifications',
+        db_column='recipient_id'
+    )
+    transaction = models.ForeignKey(
+        Transaction,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='notifications',
+        db_column='transaction_id'
+    )
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'Notification #{self.notification_id} for {self.recipient.username}'

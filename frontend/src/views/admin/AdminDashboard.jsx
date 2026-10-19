@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/client';
 import StatusBadge from '../../components/StatusBadge';
+import NotificationBell from '../../components/NotificationBell';
 import {
   Clock,
   Tags,
@@ -119,13 +120,20 @@ export default function AdminDashboard({ onNavigate }) {
           </p>
         </div>
 
-        <button
-          onClick={() => onNavigate('inventory', { openCreate: true })}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#ea580c] hover:bg-[#c2410c] text-white text-xs font-semibold shadow-xs transition-colors self-start sm:self-auto cursor-pointer"
-        >
-          <Plus size={15} strokeWidth={2.5} />
-          <span>Add apparatus</span>
-        </button>
+        <div className="flex items-center gap-2.5 self-start sm:self-auto">
+          {/* Notification Bell integration */}
+          <div className="bg-white border border-slate-200 rounded-xl p-1 shadow-2xs">
+            <NotificationBell />
+          </div>
+
+          <button
+            onClick={() => onNavigate('inventory', { openCreate: true })}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#ea580c] hover:bg-[#c2410c] text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+          >
+            <Plus size={15} strokeWidth={2.5} />
+            <span>Add apparatus</span>
+          </button>
+        </div>
       </div>
 
       {/* ── 3 Overview KPI Cards ─────────────────────────────────────────── */}
@@ -320,7 +328,7 @@ export default function AdminDashboard({ onNavigate }) {
           </div>
         )}
 
-        {/* Table Pagination Footer matching screenshot */}
+        {/* Table Pagination Footer */}
         <div className="px-6 py-3.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
           <span>
             Showing {filteredBorrows.length} of {activeBorrowList.length}{' '}
@@ -350,4 +358,3 @@ export default function AdminDashboard({ onNavigate }) {
     </div>
   );
 }
-

@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import Modal from '../../components/Modal';
 import Alert from '../../components/Alert';
 import StatusBadge from '../../components/StatusBadge';
+import NotificationBell from '../../components/NotificationBell';
 import { ClipboardList, Clock, CheckCircle2, RotateCcw, MapPin, CheckCircle, Package, XCircle, Hourglass } from 'lucide-react';
 
 function fmtDateTime(dt, opts = { dateStyle: 'short', timeStyle: 'short' }) {
@@ -89,12 +90,20 @@ export default function MyBorrowHistoryView({ onNavigateToCatalog }) {
             Pending borrow requests, apparatus in your custody, and returned items.
           </p>
         </div>
-        <button
-          onClick={onNavigateToCatalog}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#ea580c] hover:bg-[#c2410c] text-white text-xs font-semibold shadow-xs transition-colors self-start sm:self-auto cursor-pointer"
-        >
-          <Package size={15} /> <span>Borrow apparatus</span>
-        </button>
+
+        <div className="flex items-center gap-2.5 self-start sm:self-auto">
+          {/* Notification Bell integration */}
+          <div className="bg-white border border-slate-200 rounded-xl p-1 shadow-2xs">
+            <NotificationBell />
+          </div>
+
+          <button
+            onClick={onNavigateToCatalog}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#ea580c] hover:bg-[#c2410c] text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+          >
+            <Package size={15} /> <span>Borrow apparatus</span>
+          </button>
+        </div>
       </div>
 
       <Alert type="success" message={successMsg} />
@@ -162,7 +171,7 @@ export default function MyBorrowHistoryView({ onNavigateToCatalog }) {
                   {(user?.role === 'STAFF' || user?.role === 'ADMIN') && (
                     <button
                       onClick={() => { setSelectedTx(tx); setIsReturnModalOpen(true); }}
-                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-all"
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-all cursor-pointer"
                     >
                       <RotateCcw size={13} /> Check In (Staff)
                     </button>
@@ -248,7 +257,7 @@ export default function MyBorrowHistoryView({ onNavigateToCatalog }) {
               type="button"
               onClick={handleConfirmReturn}
               disabled={submitting}
-              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-colors disabled:opacity-50"
+              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
             >
               {submitting ? 'Checking in...' : 'Confirm Return'}
             </button>
@@ -258,4 +267,3 @@ export default function MyBorrowHistoryView({ onNavigateToCatalog }) {
     </div>
   );
 }
-
